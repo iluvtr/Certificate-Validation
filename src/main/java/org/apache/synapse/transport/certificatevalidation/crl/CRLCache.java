@@ -21,7 +21,7 @@ package org.apache.synapse.transport.certificatevalidation.crl;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import org.apache.synapse.commons.jmx.MBeanRegistrar;
+//import org.apache.synapse.commons.jmx.MBeanRegistrar;
 import org.apache.synapse.transport.certificatevalidation.cache.CacheController;
 import org.apache.synapse.transport.certificatevalidation.cache.CacheManager;
 import org.apache.synapse.transport.certificatevalidation.cache.ManageableCache;
@@ -74,7 +74,7 @@ public class CRLCache implements ManageableCache {
                 if (cacheManager == null) {
                     cacheManager = new CacheManager(cache, size, delay);
                     CacheController mbean = new CacheController(cache,cacheManager);
-                    MBeanRegistrar.getInstance().registerMBean(mbean, "CacheController", "CRLCacheController");
+//                    MBeanRegistrar.getInstance().registerMBean(mbean, "CacheController", "CRLCacheController");
                 }
             }
         }
