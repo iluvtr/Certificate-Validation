@@ -26,13 +26,12 @@ import org.apache.synapse.transport.certificatevalidation.cache.CacheController;
 import org.apache.synapse.transport.certificatevalidation.cache.CacheManager;
 import org.apache.synapse.transport.certificatevalidation.cache.ManageableCache;
 import org.apache.synapse.transport.certificatevalidation.cache.ManageableCacheValue;
+import org.apache.synapse.transport.certificatevalidation.cache.MBeanRegistrar;
 import org.bouncycastle.ocsp.*;
 
 import java.math.BigInteger;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * This is a cache to store OSCP responses against Certificate Serial Number since an OCSP response depends on
@@ -65,19 +64,20 @@ public class OCSPCache implements ManageableCache {
      * This lazy initializes the Cache with a CacheManager. If this method is not called, a cache manager will not be used.
      * @param size max size of the cache
      * @param delay defines how frequently the CacheManager will be started
+     * @param scheduler
      */
-    public void init(int size, int delay) {
+    public void init(int size, int delay, ScheduledExecutorService scheduler) {
         if (cacheManager == null) {
             synchronized (OCSPCache.class) {
                 if (cacheManager == null) {
-                    cacheManager = new CacheManager(cache, size, delay);
+                    cacheManager = new CacheManager(cache, size, delay, scheduler);
                     CacheController mbean = new CacheController(cache,cacheManager);
-//                    MBeanRegistrar.getInstance().registerMBean(mbean, "CacheController", "OCSPCacheController");
+                    MBeanRegistrar.getInstance().registerMBean(mbean, "CacheController", "OCSPCacheController");
                 }
             }
         }
     }
-
+    
     /**
      * This method is needed by the cache Manager to go through the cache entries to remove invalid values or
      * to remove LRU cache values if the cache has reached its max size.

@@ -35,6 +35,7 @@ import java.security.*;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.Vector;
+import java.util.concurrent.*;
 
 public class OCSPVerifierTest extends TestCase {
 
@@ -72,7 +73,7 @@ public class OCSPVerifierTest extends TestCase {
         SingleResp singleResp = ((BasicOCSPResp)response.getResponseObject()).getResponses()[0];
 
         OCSPCache cache = OCSPCache.getCache();
-        cache.init(5,5);
+        cache.init(5,5, Executors.newScheduledThreadPool(1));
         cache.setCacheValue(revokedSerialNumber,singleResp, request, null);
 
         OCSPVerifier ocspVerifier= new OCSPVerifier(cache);

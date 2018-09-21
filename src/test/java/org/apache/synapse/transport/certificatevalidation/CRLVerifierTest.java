@@ -33,6 +33,7 @@ import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.*;
 
 public class CRLVerifierTest extends TestCase {
 
@@ -70,7 +71,7 @@ public class CRLVerifierTest extends TestCase {
         X509CRL x509CRL = createCRL(fakeCACert, caKeyPair.getPrivate(), revokedSerialNumber);
 
         CRLCache cache = CRLCache.getCache();
-        cache.init(5, 5);
+        cache.init(5, 5, Executors.newScheduledThreadPool(1));
         cache.setCacheValue(crlDistributionPointUrl, x509CRL);
 
         CRLVerifier crlVerifier  = new CRLVerifier(cache);

@@ -27,6 +27,7 @@ import org.apache.synapse.transport.certificatevalidation.pathvalidation.Certifi
 
 import java.security.Security;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.*;
 
 public class RevocationVerificationTest extends TestCase {
 
@@ -49,6 +50,7 @@ public class RevocationVerificationTest extends TestCase {
         } catch (CertificateVerificationException e) {
             //Path Verification Should Pass. This catch block should not be called
             throwable = e;
+            e.printStackTrace();
         }
         assertNull(throwable);
 
@@ -89,9 +91,12 @@ public class RevocationVerificationTest extends TestCase {
             ocspPathValidation(certificates);
         } catch (CertificateVerificationException e) {
             //Path Verification Should Pass. This catch block should not be called
-            throwable = e;
+            throwable = e;           
+            throwable.printStackTrace();
+
         }
         assertNull(throwable);
+
     }
 
     /**
@@ -117,7 +122,7 @@ public class RevocationVerificationTest extends TestCase {
     private void crlPathValidation(X509Certificate[] certChain) throws Exception {
 
         CRLCache crlCache = CRLCache.getCache();
-        crlCache.init(5, 5);
+        crlCache.init(5, 5,  Executors.newScheduledThreadPool(1));
         RevocationVerifier verifier = new CRLVerifier(crlCache);
         CertificatePathValidator pathValidator = new CertificatePathValidator(certChain, verifier);
         pathValidator.validatePath();
@@ -126,7 +131,7 @@ public class RevocationVerificationTest extends TestCase {
     private void ocspPathValidation(X509Certificate[] certChain) throws Exception {
 
         OCSPCache ocspCache = OCSPCache.getCache();
-        ocspCache.init(5, 5);
+        ocspCache.init(5, 5, Executors.newScheduledThreadPool(1));
         RevocationVerifier verifier = new OCSPVerifier(ocspCache);
         CertificatePathValidator pathValidator = new CertificatePathValidator(certChain, verifier);
         pathValidator.validatePath();

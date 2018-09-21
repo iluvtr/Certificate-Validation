@@ -18,12 +18,11 @@
  */
 package org.apache.synapse.transport.certificatevalidation.cache;
 
+import java.util.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.synapse.transport.certificatevalidation.Constants;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -45,23 +44,22 @@ public class CacheManager {
     private CacheManagingTask cacheManagingTask;
     private static final Log log = LogFactory.getLog(CacheManager.class);
 
-    /**
+     /**
      * A new cacheManager will be started on the given ManageableCache object.
      *
      * @param cache        a Manageable Cache which could be managed by this cache manager.
      * @param cacheMaxSize Maximum size of the cache. If the cache exceeds this size, LRU values will be
      *                     removed
      */
-    public CacheManager(ManageableCache cache, int cacheMaxSize, int delay) {
-        int NUM_THREADS = 1;
-        scheduler = Executors.newScheduledThreadPool(NUM_THREADS);
+    public CacheManager(ManageableCache cache, int cacheMaxSize, int delay, ScheduledExecutorService scheduler) {
+        this.scheduler=scheduler;
         this.cache = cache;
         this.cacheMaxSize = cacheMaxSize;
         this.cacheManagingTask = new CacheManagingTask();
         this.delay = delay;
         start();
-    }
-
+  }
+   
     /**
      * To Start the CacheManager. Should be called only once per CacheManager so called in constructor.
      * CacheManager will run its TimerTask every "delay" number of seconds.

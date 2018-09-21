@@ -26,12 +26,14 @@ import org.apache.synapse.transport.certificatevalidation.cache.CacheController;
 import org.apache.synapse.transport.certificatevalidation.cache.CacheManager;
 import org.apache.synapse.transport.certificatevalidation.cache.ManageableCache;
 import org.apache.synapse.transport.certificatevalidation.cache.ManageableCacheValue;
+import org.apache.synapse.transport.certificatevalidation.cache.MBeanRegistrar;
 
 import java.security.cert.X509CRL;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * Since a CRL maps to a CRL URL, the CRLCache should have x509CRL entries against CRL URLs.
@@ -67,18 +69,19 @@ public class CRLCache implements ManageableCache {
      *
      * @param size max size of the cache
      * @param delay defines how frequently the CacheManager will be started
+     * @param scheduler
      */
-    public void init(int size, int delay) {
+    public void init(int size, int delay, ScheduledExecutorService scheduler) {
         if (cacheManager == null) {
             synchronized (CRLCache.class) {
                 if (cacheManager == null) {
-                    cacheManager = new CacheManager(cache, size, delay);
+                    cacheManager = new CacheManager(cache, size, delay, scheduler);
                     CacheController mbean = new CacheController(cache,cacheManager);
-//                    MBeanRegistrar.getInstance().registerMBean(mbean, "CacheController", "CRLCacheController");
+                    MBeanRegistrar.getInstance().registerMBean(mbean, "CacheController", "CRLCacheController");
                 }
             }
         }
-    }
+    } 
 
     /**
      * This method is needed by the cache Manager to go through the cache entries to remove invalid values or
