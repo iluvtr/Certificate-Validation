@@ -37,35 +37,22 @@ import java.util.concurrent.*;
  */
 public class RevocationVerificationManager {
 
-    private int cacheSize = Constants.CACHE_DEFAULT_ALLOCATED_SIZE;
-    private int cacheDelayMins = Constants.CACHE_DEFAULT_DELAY_MINS;
     private static final Log log = LogFactory.getLog(RevocationVerificationManager.class);
+  
+    private final OCSPCache ocspCache;
+    private final CRLCache crlCache;
 
-    public RevocationVerificationManager(ScheduledExecutorService ocspCacheScheduler, ScheduledExecutorService crlCacheScheduler) {
-        this(null, null, ocspCacheScheduler, crlCacheScheduler);
+    public RevocationVerificationManager(OCSPCache ocspCache, CRLCache crlCache) {
+        this.ocspCache = Objects.requireNonNull(ocspCache, "ocspCache is required");
+        this.crlCache = Objects.requireNonNull(crlCache, "crlCache is required");
     }
-    
-    public RevocationVerificationManager(Integer cacheAllocatedSize, Integer cacheDelayMins, ScheduledExecutorService ocspCacheScheduler, ScheduledExecutorService crlCacheScheduler) {
-        if (cacheAllocatedSize != null && cacheAllocatedSize > Constants.CACHE_MIN_ALLOCATED_SIZE
-                && cacheAllocatedSize < Constants.CACHE_MAX_ALLOCATED_SIZE) {
-            this.cacheSize = cacheAllocatedSize;
-        }
-        if (cacheDelayMins != null && cacheDelayMins > Constants.CACHE_MIN_DELAY_MINS
-                && cacheDelayMins < Constants.CACHE_MAX_DELAY_MINS) {
-            this.cacheDelayMins = cacheDelayMins;
-        } 
-        Objects.requireNonNull(ocspCacheScheduler, "ocspCacheScheduler is required");
-        Objects.requireNonNull(crlCacheScheduler, "crlCacheScheduler is required");
 
-        OCSPCache ocspCache = OCSPCache.getCache();
-        ocspCache.init(this.cacheSize, this.cacheDelayMins, ocspCacheScheduler);
-       
-        CRLCache crlCache = CRLCache.getCache();
-        crlCache.init(this.cacheSize, this.cacheDelayMins, crlCacheScheduler);
+    public RevocationVerificationManager() {
+        this.ocspCache = null;
+        this.crlCache = null;
     }
     
     
-
     /**
      * This method first tries to verify the given certificate chain using OCSP since OCSP verification is
      * faster. If that fails it tries to do the verification using CRL.
@@ -81,10 +68,7 @@ public class RevocationVerificationManager {
 
     public void verifyRevocationStatus(X509Certificate[] peerCertificates)
             throws CertificateVerificationException {
-        long start = System.currentTimeMillis();
-
-        OCSPCache ocspCache = OCSPCache.getCache();
-        CRLCache crlCache = CRLCache.getCache();
+        long start = System.currentTimeMillis(); 
 
         RevocationVerifier[] verifiers = {new OCSPVerifier(ocspCache), new CRLVerifier(crlCache)};
 
