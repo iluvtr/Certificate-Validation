@@ -27,9 +27,7 @@ import org.apache.synapse.transport.certificatevalidation.ocsp.OCSPVerifier;
 import org.apache.synapse.transport.certificatevalidation.pathvalidation.CertificatePathValidator;
 
 import java.io.ByteArrayInputStream;
-import java.security.cert.X509Certificate;
-import java.util.*;
-import java.util.concurrent.*;
+import java.security.cert.X509Certificate; 
 
 /**
  * Manager class responsible for verifying certificates. This class will use the available verifiers according to
@@ -43,16 +41,10 @@ public class RevocationVerificationManager {
     private final CRLCache crlCache;
 
     public RevocationVerificationManager(OCSPCache ocspCache, CRLCache crlCache) {
-        this.ocspCache = Objects.requireNonNull(ocspCache, "ocspCache is required");
-        this.crlCache = Objects.requireNonNull(crlCache, "crlCache is required");
+        this.ocspCache = ocspCache;
+        this.crlCache = crlCache;
     }
-
-    public RevocationVerificationManager() {
-        this.ocspCache = null;
-        this.crlCache = null;
-    }
-    
-    
+  
     /**
      * This method first tries to verify the given certificate chain using OCSP since OCSP verification is
      * faster. If that fails it tries to do the verification using CRL.
