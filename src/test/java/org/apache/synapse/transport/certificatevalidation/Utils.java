@@ -47,7 +47,7 @@ public class Utils {
         certGen.setSubjectDN(new X500Principal("CN=Test CA Certificate"));
         certGen.setPublicKey(pair.getPublic());
         certGen.setSignatureAlgorithm("SHA1WithRSAEncryption");
-
+        
         return certGen.generateX509Certificate(pair.getPrivate(), "BC");
     }
 
