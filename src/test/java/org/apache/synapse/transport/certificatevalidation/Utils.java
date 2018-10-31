@@ -70,7 +70,7 @@ public class Utils {
     public X509V3CertificateGenerator getUsableCertificateGenerator(X509Certificate caCert,
                                                                     PublicKey peerPublicKey, BigInteger serialNumber){
         X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
-
+        
         certGen.setSerialNumber(serialNumber);
         certGen.setIssuerDN(caCert.getSubjectX500Principal());
         certGen.setNotBefore(new Date(System.currentTimeMillis()));

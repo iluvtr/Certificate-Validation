@@ -18,6 +18,7 @@
  */
 package org.apache.synapse.transport.certificatevalidation.crl;
 
+import java.io.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.bouncycastle.asn1.ASN1InputStream;
@@ -27,13 +28,12 @@ import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.x509.*;
 import org.apache.synapse.transport.certificatevalidation.*;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.cert.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import javax.naming.*;
+import javax.naming.directory.*;
 
 /**
  * This is used to verify a certificate is revoked or not by using the Certificate Revocation List published
@@ -64,14 +64,14 @@ public class CRLVerifier implements RevocationVerifier {
         List<String> list = getCrlDistributionPoints(peerCert);
         //check with distributions points in the list one by one. if one fails go to the other.
         for (String crlUrl : list) {
-            log.info("Trying to get CRL for URL: " + crlUrl);
+            log.debug("Trying to get CRL for URL: " + crlUrl);
 
             if (cache != null) {
                 X509CRL x509CRL = cache.getCacheValue(crlUrl);
                 if (x509CRL != null) {
                     //If cant be casted, we have used the wrong cache.
                     RevocationStatus status = getRevocationStatus(x509CRL, peerCert);
-                    log.info("CRL taken from cache....");
+                    log.debug("CRL taken from cache....");
                     return status;
                 }
             }
@@ -79,14 +79,14 @@ public class CRLVerifier implements RevocationVerifier {
             //todo: Do we need to check if URL has the same domain name as issuerCert?
             //todo: What if this certificate is Unknown?????
             try {
-                X509CRL x509CRL = downloadCRLFromWeb(crlUrl);
+                X509CRL x509CRL = downloadCRL(crlUrl);
                 if (x509CRL != null) {
                     if (cache != null)
                         cache.setCacheValue(crlUrl, x509CRL);
                     return getRevocationStatus(x509CRL, peerCert);
                 }
             } catch (Exception e) {
-                log.info("Either url is bad or cant build X509CRL. So check with the next url in the list.", e);
+                log.debug("Either url is bad or cant build X509CRL. So check with the next url in the list.", e);
             }
         }
         throw new CertificateVerificationException("Cannot check revocation status with the certificate");
@@ -99,29 +99,68 @@ public class CRLVerifier implements RevocationVerifier {
             return RevocationStatus.GOOD;
         }
     }
-
-    /**
-     * Downloads CRL from the crlUrl. Does not support HTTPS
+     /**
+     * Downloads CRL from given URL. Supports http, https, ftp and ldap based URLs.
      */
-    protected X509CRL downloadCRLFromWeb(String crlURL)
-            throws IOException, CertificateVerificationException {
+    protected  X509CRL downloadCRL(String crlURL) throws IOException,
+            CertificateException, CRLException,
+            CertificateVerificationException, NamingException {
+        if (crlURL.startsWith("http://") || crlURL.startsWith("https://")
+                || crlURL.startsWith("ftp://")) {
+            return downloadCRLFromWeb(crlURL);
+        } else if (crlURL.startsWith("ldap://")) {
+            return downloadCRLFromLDAP(crlURL);
+        } else {
+            throw new CertificateVerificationException(
+                    "Can not download CRL from certificate " +
+                            "distribution point: " + crlURL);
+        }
+    }
+    
+   /**
+     * Downloads a CRL from given LDAP url, e.g.
+     * ldap://ldap.infonotary.com/dc=identity-ca,dc=infonotary,dc=com
+     */
+    private X509CRL downloadCRLFromLDAP(String ldapURL)
+            throws CertificateException, NamingException, CRLException,
+            CertificateVerificationException {
+        Hashtable<String, String> env = new Hashtable<String, String>();
+        env.put(Context.INITIAL_CONTEXT_FACTORY,
+                "com.sun.jndi.ldap.LdapCtxFactory");
+        env.put(Context.PROVIDER_URL, ldapURL);
+
+        DirContext ctx = new InitialDirContext(env);
+        Attributes avals = ctx.getAttributes("");
+        javax.naming.directory.Attribute aval = avals.get("certificateRevocationList;binary");
+        byte[] val = (byte[]) aval.get();
+        if ((val == null) || (val.length == 0)) {
+            throw new CertificateVerificationException(
+                    "Can not download CRL from: " + ldapURL);
+        } else {
+            InputStream inStream = new ByteArrayInputStream(val);
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+            return (X509CRL) cf.generateCRL(inStream);
+        }
+    }
+    /**
+     * Downloads a CRL from given HTTP/HTTPS/FTP URL, e.g.
+     * http://crl.infonotary.com/crl/identity-ca.crl
+     */
+    private X509CRL downloadCRLFromWeb(String crlURL)
+            throws MalformedURLException, IOException, CertificateException, CRLException  {
         InputStream crlStream = null;
         try {
             URL url = new URL(crlURL);
             crlStream = url.openStream();
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
             return (X509CRL) cf.generateCRL(crlStream);
-        } catch (MalformedURLException e) {
-            throw new CertificateVerificationException("CRL Url is malformed", e);
-        } catch (IOException e) {
-            throw new CertificateVerificationException("Cant reach URI: " + crlURL + " - only support HTTP", e);
-        } catch (CertificateException e) {
-            throw new CertificateVerificationException(e);
-        } catch (CRLException e) {
-            throw new CertificateVerificationException("Cannot generate X509CRL from the stream data", e);
         } finally {
-            if (crlStream != null)
-                crlStream.close();
+            if (crlStream != null) {
+                try {
+                    crlStream.close();
+                } catch (Exception ignore) {
+                }
+            }
         }
     }
 

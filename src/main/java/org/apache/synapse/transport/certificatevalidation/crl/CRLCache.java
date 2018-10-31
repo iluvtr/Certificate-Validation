@@ -119,10 +119,10 @@ public class CRLCache implements ManageableCache {
 
         try {
             String crlUrl = cacheValue.crlUrl;
-            X509CRL x509CRL = crlVerifier.downloadCRLFromWeb(crlUrl);
+            X509CRL x509CRL = crlVerifier.downloadCRL(crlUrl);
             this.setCacheValue(crlUrl, x509CRL);
         } catch (Exception e) {
-            log.info("Cant replace old CacheValue with new CacheValue. So remove", e);
+            log.warn("Cant replace old CacheValue with new CacheValue. So remove", e);
             //If cant be replaced remove.
             cacheValue.removeThisCacheValue();
         }
@@ -146,15 +146,15 @@ public class CRLCache implements ManageableCache {
 
     public synchronized void setCacheValue(String crlUrl, X509CRL crl) {
         CRLCacheValue cacheValue = new CRLCacheValue(crlUrl, crl);
-        log.info("Before set- HashMap size " + hashMap.size());
+        log.debug("Before set- HashMap size " + hashMap.size());
         hashMap.put(crlUrl, cacheValue);
-        log.info("After set - HashMap size " + hashMap.size());
+        log.debug("After set - HashMap size " + hashMap.size());
     }
 
     public synchronized void removeCacheValue(String crlUrl) {
-        log.info("Before remove - HashMap size " + hashMap.size());
+        log.debug("Before remove - HashMap size " + hashMap.size());
         hashMap.remove(crlUrl);
-        log.info("After remove - HashMap size " + hashMap.size());
+        log.debug("After remove - HashMap size " + hashMap.size());
 
     }
 

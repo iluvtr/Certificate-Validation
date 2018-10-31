@@ -130,7 +130,7 @@ public class OCSPCache implements ManageableCache {
             this.setCacheValue(cacheValue.serialNumber, resp, request, serviceUrl);
 
         } catch (Exception e){
-            log.info("Cant replace old CacheValue with new CacheValue. So remove", e);
+            log.warn("Cant replace old CacheValue with new CacheValue. So remove", e);
             //If cant be replaced remove.
             cacheValue.removeThisCacheValue();
         }
@@ -155,15 +155,15 @@ public class OCSPCache implements ManageableCache {
 
     public synchronized void setCacheValue(BigInteger serialNumber, SingleResp singleResp, OCSPReq request, String serviceUrl) {
         OCSPCacheValue cacheValue = new OCSPCacheValue(serialNumber, singleResp, request, serviceUrl);
-        log.info("Before set - HashMap size " + hashMap.size());
+        log.debug("Before set - HashMap size " + hashMap.size());
         hashMap.put(serialNumber, cacheValue);
-        log.info("After set - HashMap size " + hashMap.size());
+        log.debug("After set - HashMap size " + hashMap.size());
     }
 
     public synchronized void removeCacheValue(BigInteger serialNumber) {
-        log.info("Before remove - HashMap size " + hashMap.size());
+        log.debug("Before remove - HashMap size " + hashMap.size());
         hashMap.remove(serialNumber);
-        log.info("After remove - HashMap size " + hashMap.size());
+        log.debug("After remove - HashMap size " + hashMap.size());
     }
 
     /**

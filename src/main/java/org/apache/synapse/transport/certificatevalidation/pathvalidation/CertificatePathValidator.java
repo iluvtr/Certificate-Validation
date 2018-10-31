@@ -97,7 +97,7 @@ public class CertificatePathValidator {
 
             validator.validate(certPath, param);
 
-            log.info("Certificate path validated");
+            log.debug("Certificate path validated");
         } catch (CertPathValidatorException e) {
             throw new CertificateVerificationException("Certificate Path Validation failed on certificate number "
                     + e.getIndex() + ", details: " + e.getMessage(), e);

@@ -68,7 +68,7 @@ public class CacheManager {
         if(scheduledFuture == null || (scheduledFuture.isCancelled())) {
             scheduledFuture = scheduler.scheduleWithFixedDelay(cacheManagingTask,
                     delay, delay, TimeUnit.MINUTES);
-            log.info(cache.getClass().getSimpleName()+" Cache Manager Started");
+            log.debug(cache.getClass().getSimpleName()+" Cache Manager Started");
             return true;
         }
         return false;
@@ -86,7 +86,7 @@ public class CacheManager {
             }
             scheduledFuture = scheduler.scheduleWithFixedDelay(cacheManagingTask,
                     0, delay,TimeUnit.MINUTES);
-            log.info(cache.getClass().getSimpleName()+" Cache Manager Wakened Up.....");
+            log.debug(cache.getClass().getSimpleName()+" Cache Manager Wakened Up.....");
             return true;
         }
         return false;
@@ -113,7 +113,7 @@ public class CacheManager {
     public boolean stop(){
         if(scheduledFuture !=null && !scheduledFuture.isCancelled()){
             scheduledFuture.cancel(DO_NOT_INTERRUPT_IF_RUNNING);
-            log.info(cache.getClass().getSimpleName()+" Cache Manager Stopped.....");
+            log.debug(cache.getClass().getSimpleName()+" Cache Manager Stopped.....");
             return true;
         }
         return false;
@@ -132,7 +132,7 @@ public class CacheManager {
         public void run() {
 
             long start = System.currentTimeMillis();
-            log.info(cache.getClass().getSimpleName()+" Cache Manager Task Started.");
+            log.debug(cache.getClass().getSimpleName()+" Cache Manager Task Started.");
 
             ManageableCacheValue nextCacheValue;
             //cache.getCacheSize() can vary when new entries are added. So get cache size at this point
@@ -149,13 +149,13 @@ public class CacheManager {
 
                 nextCacheValue = cache.getNextCacheValue();
                 if (nextCacheValue == null) {
-                    log.info("Cache manager iteration through Cache values done");
+                    log.debug("Cache manager iteration through Cache values done");
                     break;
                 }
 
                 //Updating invalid cache values
                 if (!nextCacheValue.isValid()) {
-                    log.info("Updating Invalid Cache Value by Manager");
+                    log.debug("Updating Invalid Cache Value by Manager");
                     nextCacheValue.updateCacheWithNewValue();
                 }
 
@@ -167,11 +167,11 @@ public class CacheManager {
 
             //LRU entries removing
             for(ManageableCacheValue oldCacheValue: entriesToRemove) {
-                log.info("Removing LRU value from cache");
+                log.debug("Removing LRU value from cache");
                 oldCacheValue.removeThisCacheValue();
             }
 
-            log.info(cache.getClass().getSimpleName()+" Cache Manager Task Done. Took " +
+            log.debug(cache.getClass().getSimpleName()+" Cache Manager Task Done. Took " +
                     (System.currentTimeMillis() - start) + " ms.");
         }
 

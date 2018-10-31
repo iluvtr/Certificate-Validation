@@ -66,7 +66,7 @@ public class OCSPVerifier implements RevocationVerifier {
             if (resp != null) {
                 //If cant be casted, we have used the wrong cache.
                 RevocationStatus status = getRevocationStatus(resp);
-                log.info("OCSP response taken from cache....");
+                log.debug("OCSP response taken from cache....");
                 return status;
             }
         }

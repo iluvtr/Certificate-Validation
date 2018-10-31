@@ -68,10 +68,10 @@ public class RevocationVerificationManager {
             try {
                 CertificatePathValidator pathValidator = new CertificatePathValidator(peerCertificates, verifier);
                 pathValidator.validatePath();
-                log.info("Path verification Successful. Took " + (System.currentTimeMillis() - start) + " ms.");
+                log.debug("Path verification Successful. Took " + (System.currentTimeMillis() - start) + " ms.");
                 return;
             } catch (Exception e) {
-                log.info(verifier.getClass().getSimpleName() + " failed.");
+                log.debug(verifier.getClass().getSimpleName() + " failed.");
                 log.debug("Certificate verification with " + verifier.getClass().getSimpleName() + " failed. ", e);
             }
         }
